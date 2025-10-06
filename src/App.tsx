@@ -14,7 +14,6 @@ export default function App() {
   const add = useTodoItems((s) => s.add);
   const toggle = useTodoItems((s) => s.toggle);
   const edit = useTodoItems((s) => s.edit);
-  const reorder = useTodoItems((s) => s.reorder);
   const remove = useTodoItems((s) => s.remove);
 
   const { open, editing, openAdd, openEdit, close, save, del } = useTodoDialog({ items, add, edit, remove });
@@ -31,7 +30,6 @@ export default function App() {
           items={visible}
           onToggle={toggle}
           onEdit={openEdit}
-          onReorder={reorder}
         />
         <TodoDialog
           open={open}

@@ -7,7 +7,6 @@ import {
   Typography,
   Checkbox,
   IconButton,
-  Stack
 } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditIcon from '@mui/icons-material/Edit';

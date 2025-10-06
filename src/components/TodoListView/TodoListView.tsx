@@ -15,17 +15,18 @@ import { Box } from '@mui/material';
 import TodoItem from '../TodoItem/TodoItem';
 import { ITodo } from '../../utils/types';
 import { useUi } from '../../app/store/useUI';
+import { useTodoItems } from '../../app/store/useTodoItems';
 
 type Props = {
   items: ITodo[];
   onToggle: (id: string) => void;
   onEdit: (id: string) => void;
-  onReorder: (from: number, to: number) => void;
 };
 
-export default function TodoListView({ items, onToggle, onEdit, onReorder }: Props) {
+export default function TodoListView({ items, onToggle, onEdit }: Props) {
   const aiEnabled = useUi((s) => s.aiEnabled);
   const setAiEnabled = useUi((s) => s.setAiEnabled);
+  const reorderByIds = useTodoItems(s => s.reorderByIds);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -33,13 +34,10 @@ export default function TodoListView({ items, onToggle, onEdit, onReorder }: Pro
     if (aiEnabled) setAiEnabled(false);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
     if (!over || active.id === over.id) return;
-    const oldIndex = items.findIndex((i) => i.id === String(active.id));
-    const newIndex = items.findIndex((i) => i.id === String(over.id));
-    if (oldIndex === -1 || newIndex === -1) return;
-    onReorder(oldIndex, newIndex);
+    reorderByIds(String(active.id), String(over.id));
   };
 
   return (

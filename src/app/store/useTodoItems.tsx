@@ -9,34 +9,37 @@ export type TodoItemsStore = {
   remove: (id: string) => void;
   toggle: (id: string) => void;
   edit: (id: string, patch: Partial<ITodo>) => void;
-  reorder: (fromIndex: number, toIndex: number) => void;
+  reorderByIds: (activeId: string, overId: string) => void; // якщо десь ще використовуєш
+  reorderWithinGroup: (group: 'active' | 'completed', activeId: string, overId: string) => void;
   replaceAll: (items: ITodo[]) => void;
 };
 
 const initItems = loadTodos() ?? [];
 
-const sortCompletedBottom = (arr: ITodo[]) =>
-  [...arr].sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
-
 export const useTodoItems = create<TodoItemsStore>((set, get) => ({
   items: initItems,
+
   add: (item) => {
     const next = [item, ...get().items];
     saveTodos(next);
     set({ items: next });
   },
+
   remove: (id) => {
     const next = get().items.filter((t) => t.id !== id);
     saveTodos(next);
     set({ items: next });
   },
+
   toggle: (id) => {
-    const next = get().items
-      .map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
-    const sorted = sortCompletedBottom(next);
-    saveTodos(sorted);
-    set({ items: sorted });
+    const next = get()
+      .items
+      .map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+      .sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
+    saveTodos(next);
+    set({ items: next });
   },
+
   edit: (id, patch) => {
     const next = get().items.map((t) =>
       t.id === id ? { ...t, ...patch, updatedAt: new Date().toISOString() } : t
@@ -44,13 +47,37 @@ export const useTodoItems = create<TodoItemsStore>((set, get) => ({
     saveTodos(next);
     set({ items: next });
   },
-  reorder: (fromIndex, toIndex) => {
-    const src = get().items;
-    const next = arrayMove(src, fromIndex, toIndex);
-    const sorted = sortCompletedBottom(next);
-    saveTodos(sorted);
-    set({ items: sorted });
+
+  reorderByIds: (activeId, overId) => {
+    const items = get().items;
+    const from = items.findIndex((x) => x.id === activeId);
+    const to = items.findIndex((x) => x.id === overId);
+    if (from < 0 || to < 0) return;
+    const next = arrayMove(items, from, to)
+      .sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
+    saveTodos(next);
+    set({ items: next });
   },
+
+  reorderWithinGroup: (group, activeId, overId) => {
+    const items = get().items;
+    const activeList = items.filter((t) => !t.completed);
+    const completedList = items.filter((t) => t.completed);
+
+    const list = group === 'active' ? activeList : completedList;
+    const from = list.findIndex((t) => t.id === activeId);
+    const to = list.findIndex((t) => t.id === overId);
+    if (from < 0 || to < 0) return;
+
+    const reordered = arrayMove(list, from, to);
+    const next = group === 'active'
+      ? [...reordered, ...completedList]
+      : [...activeList, ...reordered];
+
+    saveTodos(next);
+    set({ items: next });
+  },
+
   replaceAll: (items) => {
     saveTodos(items);
     set({ items });
