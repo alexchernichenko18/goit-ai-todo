@@ -7,7 +7,7 @@ export interface ITodo {
   title: string;
   description?: string;
   completed: boolean;
-
+  order: number;
   deadline?: string | null;
   importance: number;
   estimateMinutes?: number;
@@ -16,12 +16,10 @@ export interface ITodo {
   context?: string;
   location?: LocationType;
   dependencyIds?: string[];
-
   createdAt: string;
   updatedAt: string;
   postponedCount: number;
   lastPostponedAt?: string | null;
-
   urgencyScore?: number;
   overdueSeverity?: number;
   importanceScore?: number;
@@ -42,6 +40,5 @@ export interface ITodo {
   locationFit?: number;
   focusRequirement?: number;
   sessionLengthFit?: number;
-
   priorityScore?: number;
 }

@@ -11,77 +11,66 @@ type Store = {
   reorderWithinGroup: (group: 'active', fromId: string, toId: string) => void;
 };
 
-const init = loadTodos() ?? [];
+const init = (loadTodos() ?? []).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
 export const useTodoItems = create<Store>((set, get) => ({
   items: init,
 
   add: (t) => {
-    const next = [t, ...get().items];
-    console.log('[STORE:add]', { added: t.id, total: next.length });
+    const next = [t, ...get().items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     saveTodos(next);
     set({ items: next });
   },
 
   remove: (id) => {
-    console.log('[STORE:remove]', { id });
-    const next = get().items.filter(x => x.id !== id);
+    const next = get().items.filter((x) => x.id !== id);
     saveTodos(next);
     set({ items: next });
   },
 
   toggle: (id) => {
-    console.log('[STORE:toggle]', { id });
-    const before = get().items.map(x => ({ id: x.id, completed: x.completed }));
     const next = get()
       .items
-      .map(x => x.id === id ? { ...x, completed: !x.completed } : x)
-      .sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
-    console.log('[STORE:toggle] before:', before);
-    console.log('[STORE:toggle] after:', next.map(x => ({ id: x.id, completed: x.completed })));
+      .map((x) => (x.id === id ? { ...x, completed: !x.completed } : x))
+      .sort((a, b) => {
+        if (a.completed === b.completed) return (a.order ?? 0) - (b.order ?? 0);
+        return a.completed ? 1 : -1;
+      });
     saveTodos(next);
     set({ items: next });
   },
 
   edit: (id, patch) => {
-    console.log('[STORE:edit]', { id, patch });
-    const next = get().items.map(x =>
-      x.id === id ? { ...x, ...patch, updatedAt: new Date().toISOString() } : x
-    );
+    const next = get()
+      .items
+      .map((x) =>
+        x.id === id ? { ...x, ...patch, updatedAt: new Date().toISOString() } : x
+      )
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     saveTodos(next);
     set({ items: next });
   },
 
   reorderWithinGroup: (_group, fromId, toId) => {
-    console.log('[STORE:reorderWithinGroup:start]', { fromId, toId });
-
     const all = get().items;
-    const active = all.filter(x => !x.completed);
-    const completed = all.filter(x => x.completed);
+    const active = all.filter((x) => !x.completed).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const completed = all.filter((x) => x.completed);
 
-    const ids = active.map(x => x.id);
-    const fromIdx = ids.indexOf(fromId);
-    const toIdx = ids.indexOf(toId);
+    const fromIdx = active.findIndex((x) => x.id === fromId);
+    const toIdx = active.findIndex((x) => x.id === toId);
+    if (fromIdx === -1 || toIdx === -1) return;
 
-    if (fromIdx === -1 || toIdx === -1) {
-      console.warn('[STORE:reorderWithinGroup:skip]', { fromIdx, toIdx });
-      return;
-    }
+    const reordered = [...active];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
 
-    console.log('[STORE:reorderWithinGroup:before]', ids);
+    const nextActive = reordered.map((x, i) => ({ ...x, order: i }));
+    const nextCompleted = completed.map((x, i) => ({
+      ...x,
+      order: nextActive.length + i,
+    }));
 
-    const reorderedIds = [...ids];
-    const [moved] = reorderedIds.splice(fromIdx, 1);
-    reorderedIds.splice(toIdx, 0, moved);
-
-    console.log('[STORE:reorderWithinGroup:after]', reorderedIds);
-
-    const byId = new Map(all.map(x => [x.id, x]));
-    const nextActive = reorderedIds.map(id => byId.get(id)!);
-    const next = [...nextActive, ...completed];
-
-    console.log('[STORE:reorderWithinGroup:final]', next.map(x => x.id));
-
+    const next = [...nextActive, ...nextCompleted];
     saveTodos(next);
     set({ items: next });
   },

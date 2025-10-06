@@ -33,6 +33,7 @@ export const createTodo = (params: CreateTodoParams = {}): ITodo => {
     title,
     description,
     completed: false,
+    order: Date.now(),
     deadline,
     importance,
     estimateMinutes,

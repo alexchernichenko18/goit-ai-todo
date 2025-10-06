@@ -1,6 +1,11 @@
 import {
-  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
-  DragEndEvent, DragStartEvent
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Box } from '@mui/material';
@@ -16,43 +21,24 @@ type Props = {
 };
 
 export default function TodoListView({ items, onToggle, onEdit }: Props) {
-  const aiEnabled = useUi(s => s.aiEnabled);
-  const setAiEnabled = useUi(s => s.setAiEnabled);
-  const reorderWithinGroup = useTodoItems(s => s.reorderWithinGroup);
+  const aiEnabled = useUi((s) => s.aiEnabled);
+  const setAiEnabled = useUi((s) => s.setAiEnabled);
+  const reorderWithinGroup = useTodoItems((s) => s.reorderWithinGroup);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  const activeItems = items.filter(t => !t.completed);
-  const completedItems = items.filter(t => t.completed);
+  const activeItems = items.filter((t) => !t.completed);
+  const completedItems = items.filter((t) => t.completed);
 
-  const handleDragStart = (e: DragStartEvent) => {
+  const handleDragStart = (_e: DragStartEvent) => {
     if (aiEnabled) setAiEnabled(false);
-    console.log('[DND] start', {
-      activeId: String(e.active?.id),
-      itemsActive: activeItems.map(i => i.id),
-      pointerType: (e.activatorEvent as any)?.pointerType,
-    });
   };
 
   const handleDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
-    console.log('[DND] end', {
-      activeId: String(active?.id),
-      overId: over ? String(over.id) : null,
-      before: activeItems.map(i => i.id),
-    });
-
-    if (!over || active.id === over.id) {
-      console.log('[DND] skip: over is null or same id');
-      return;
-    }
-
+    if (!over || active.id === over.id) return;
     reorderWithinGroup('active', String(active.id), String(over.id));
-
-    const after = useTodoItems.getState().items.filter(i => !i.completed).map(i => i.id);
-    console.log('[DND] after', { after });
   };
-  console.log('items', items);
 
   return (
     <DndContext
@@ -61,11 +47,11 @@ export default function TodoListView({ items, onToggle, onEdit }: Props) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={activeItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
         <Box>
-          {activeItems.map((item, index) => (
+          {activeItems.map((item) => (
             <TodoItem
-              key={item.id + index + item.title}
+              key={item.id}
               item={item}
               onToggleComplete={onToggle}
               onEdit={onEdit}
@@ -77,9 +63,9 @@ export default function TodoListView({ items, onToggle, onEdit }: Props) {
 
       {completedItems.length > 0 && (
         <Box>
-          {completedItems.map((item, index) => (
+          {completedItems.map((item) => (
             <TodoItem
-              key={item.id + index + item.title}
+              key={item.id}
               item={item}
               onToggleComplete={onToggle}
               onEdit={onEdit}
