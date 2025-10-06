@@ -87,6 +87,7 @@ export default function TodoItem({
         sx={{
           color: 'text.secondary',
           cursor: dragDisabled ? 'default' : 'grab',
+          touchAction: 'none',
           '&:hover': { color: 'text.primary' }
         }}
       >
