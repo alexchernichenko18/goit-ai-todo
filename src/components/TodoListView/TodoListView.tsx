@@ -44,9 +44,9 @@ export default function TodoListView({ items, onToggle, onEdit }: Props) {
     >
       <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
         <Box>
-          {activeItems.map(item => (
+          {activeItems.map((item, index) => (
             <TodoItem
-              key={item.id}
+              key={item.id + index + item.title}
               item={item}
               onToggleComplete={onToggle}
               onEdit={onEdit}
@@ -58,9 +58,9 @@ export default function TodoListView({ items, onToggle, onEdit }: Props) {
 
       {completedItems.length > 0 && (
         <Box>
-          {completedItems.map(item => (
+          {completedItems.map((item, index) => (
             <TodoItem
-              key={item.id}
+              key={item.id + index + item.title}
               item={item}
               onToggleComplete={onToggle}
               onEdit={onEdit}
