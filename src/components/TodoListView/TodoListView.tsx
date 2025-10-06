@@ -25,15 +25,34 @@ export default function TodoListView({ items, onToggle, onEdit }: Props) {
   const activeItems = items.filter(t => !t.completed);
   const completedItems = items.filter(t => t.completed);
 
-  const handleDragStart = (_e: DragStartEvent) => {
+  const handleDragStart = (e: DragStartEvent) => {
     if (aiEnabled) setAiEnabled(false);
+    console.log('[DND] start', {
+      activeId: String(e.active?.id),
+      itemsActive: activeItems.map(i => i.id),
+      pointerType: (e.activatorEvent as any)?.pointerType,
+    });
   };
 
   const handleDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
-    if (!over || active.id === over.id) return;
+    console.log('[DND] end', {
+      activeId: String(active?.id),
+      overId: over ? String(over.id) : null,
+      before: activeItems.map(i => i.id),
+    });
+
+    if (!over || active.id === over.id) {
+      console.log('[DND] skip: over is null or same id');
+      return;
+    }
+
     reorderWithinGroup('active', String(active.id), String(over.id));
+
+    const after = useTodoItems.getState().items.filter(i => !i.completed).map(i => i.id);
+    console.log('[DND] after', { after });
   };
+  console.log('items', items);
 
   return (
     <DndContext
