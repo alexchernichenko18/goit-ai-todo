@@ -71,6 +71,10 @@ const TodoItem = ({
           ref={setActivatorNodeRef}
           {...listeners}
           {...attributes}
+          sx={{
+            cursor: 'grab',
+            '&:active': { cursor: 'grabbing' },
+          }}
         >
           <DragIndicatorIcon />
         </IconButton>
