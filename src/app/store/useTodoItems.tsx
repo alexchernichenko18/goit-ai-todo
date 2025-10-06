@@ -3,7 +3,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { ITodo } from '../../utils/types';
 import { loadTodos, saveTodos } from '../../services/storage';
 
-type TodoItemsStore = {
+export type TodoItemsStore = {
   items: ITodo[];
   add: (item: ITodo) => void;
   remove: (id: string) => void;
@@ -13,57 +13,46 @@ type TodoItemsStore = {
   replaceAll: (items: ITodo[]) => void;
 };
 
-const normalize = (list: ITodo[]) => {
-  const active = list.filter(t => !t.completed);
-  const done = list.filter(t => t.completed);
-  return [...active, ...done];
-};
+const initItems = loadTodos() ?? [];
 
-const persist = (items: ITodo[]) => {
-  const next = normalize(items);
-  saveTodos(next);
-  return next;
-};
-
-const initItems = normalize(loadTodos() ?? []);
+const sortCompletedBottom = (arr: ITodo[]) =>
+  [...arr].sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
 
 export const useTodoItems = create<TodoItemsStore>((set, get) => ({
   items: initItems,
-
   add: (item) => {
-    const next = persist([item, ...get().items]);
+    const next = [item, ...get().items];
+    saveTodos(next);
     set({ items: next });
   },
-
   remove: (id) => {
-    const next = persist(get().items.filter(t => t.id !== id));
+    const next = get().items.filter((t) => t.id !== id);
+    saveTodos(next);
     set({ items: next });
   },
-
   toggle: (id) => {
-    const toggled = get().items.map(t =>
-      t.id === id ? { ...t, completed: !t.completed } : t
-    );
-    const next = persist(toggled);
-    set({ items: next });
+    const next = get().items
+      .map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
+    const sorted = sortCompletedBottom(next);
+    saveTodos(sorted);
+    set({ items: sorted });
   },
-
   edit: (id, patch) => {
-    const edited = get().items.map(t =>
+    const next = get().items.map((t) =>
       t.id === id ? { ...t, ...patch, updatedAt: new Date().toISOString() } : t
     );
-    const next = persist(edited);
+    saveTodos(next);
     set({ items: next });
   },
-
   reorder: (fromIndex, toIndex) => {
-    const moved = arrayMove(get().items, fromIndex, toIndex);
-    const next = persist(moved);
-    set({ items: next });
+    const src = get().items;
+    const next = arrayMove(src, fromIndex, toIndex);
+    const sorted = sortCompletedBottom(next);
+    saveTodos(sorted);
+    set({ items: sorted });
   },
-
   replaceAll: (items) => {
-    const next = persist(items);
-    set({ items: next });
+    saveTodos(items);
+    set({ items });
   }
 }));

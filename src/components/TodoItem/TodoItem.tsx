@@ -17,19 +17,26 @@ interface ITodoItem {
   item: ITodo;
   onToggleComplete: (id: string) => void;
   onEdit: (id: string) => void;
+  dragDisabled?: boolean;
 }
 
-const TodoItem = ({
+export default function TodoItem({
   item,
   onToggleComplete,
-  onEdit
-}: ITodoItem) => {
+  onEdit,
+  dragDisabled = false
+}: ITodoItem) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isSorting } =
-    useSortable({ id: item.id });
+    useSortable({
+      id: item.id,
+      disabled: dragDisabled
+    });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isSorting ? 0.85 : 1
+    opacity: isSorting ? 0.85 : 1,
+    cursor: dragDisabled ? 'default' : 'grab'
   };
 
   return (
@@ -42,45 +49,50 @@ const TodoItem = ({
         mb: 1.5,
         borderRadius: 2,
         bgcolor: 'background.paper',
-        borderColor: 'divider'
+        borderColor: 'divider',
+        display: 'flex',
+        alignItems: 'center'
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1.25}>
-        <Checkbox
-          checked={item.completed}
-          onChange={() => onToggleComplete(item.id)}
-          sx={{ mr: 0.25 }}
-        />
-        <Typography
-          variant="body1"
-          color="text.primary"
-          sx={{
-            flex: 1,
-            textDecoration: item.completed ? 'line-through' : 'none',
-            opacity: item.completed ? 0.6 : 1
-          }}
-        >
-          {item.title}
-        </Typography>
-        <IconButton aria-label="edit" onClick={() => onEdit(item.id)} size="small">
-          <EditIcon />
-        </IconButton>
-        <IconButton
-          aria-label="drag"
-          size="small"
-          ref={setActivatorNodeRef}
-          {...listeners}
-          {...attributes}
-          sx={{
-            cursor: 'grab',
-            '&:active': { cursor: 'grabbing' },
-          }}
-        >
-          <DragIndicatorIcon />
-        </IconButton>
-      </Stack>
+      <Checkbox
+        checked={item.completed}
+        onChange={() => onToggleComplete(item.id)}
+        sx={{ mr: 1 }}
+      />
+      <Typography
+        variant="body1"
+        color="text.primary"
+        sx={{
+          flex: 1,
+          textDecoration: item.completed ? 'line-through' : 'none',
+          opacity: item.completed ? 0.6 : 1
+        }}
+      >
+        {item.title}
+      </Typography>
+      <IconButton
+        aria-label="edit"
+        onClick={() => onEdit(item.id)}
+        size="small"
+        sx={{ color: 'text.secondary' }}
+      >
+        <EditIcon />
+      </IconButton>
+      <IconButton
+        aria-label="drag"
+        size="small"
+        ref={setActivatorNodeRef}
+        {...(!dragDisabled ? listeners : {})}
+        {...(!dragDisabled ? attributes : {})}
+        disabled={dragDisabled}
+        sx={{
+          color: 'text.secondary',
+          cursor: dragDisabled ? 'default' : 'grab',
+          '&:hover': { color: 'text.primary' }
+        }}
+      >
+        <DragIndicatorIcon />
+      </IconButton>
     </Paper>
   );
 }
-
-export default TodoItem;

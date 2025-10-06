@@ -6,8 +6,8 @@ type UiStore = {
   toggleAiEnabled: () => void;
 };
 
-export const useUi = create<UiStore>((set) => ({
+export const useUi = create<UiStore>((set, get) => ({
   aiEnabled: false,
   setAiEnabled: (v) => set({ aiEnabled: v }),
-  toggleAiEnabled: () => set((s) => ({ aiEnabled: !s.aiEnabled })),
+  toggleAiEnabled: () => set({ aiEnabled: !get().aiEnabled })
 }));
