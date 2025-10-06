@@ -20,25 +20,4 @@ export interface ITodo {
   updatedAt: string;
   postponedCount: number;
   lastPostponedAt?: string | null;
-  urgencyScore?: number;
-  overdueSeverity?: number;
-  importanceScore?: number;
-  effortInversion?: number;
-  postponePenalty?: number;
-  recency?: number;
-  streakConsistency?: number;
-  dependencyReadiness?: number;
-  contextFit?: number;
-  timeOfDayFit?: number;
-  energyFit?: number;
-  calendarConflict?: number;
-  rewardScore?: number;
-  riskScore?: number;
-  collaborationNeed?: number;
-  habitStrength?: number;
-  deadlineUncertainty?: number;
-  locationFit?: number;
-  focusRequirement?: number;
-  sessionLengthFit?: number;
-  priorityScore?: number;
 }

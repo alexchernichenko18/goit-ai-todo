@@ -46,6 +46,5 @@ export const createTodo = (params: CreateTodoParams = {}): ITodo => {
     updatedAt: now,
     postponedCount: 0,
     lastPostponedAt: null,
-    priorityScore: 0
   };
 };
